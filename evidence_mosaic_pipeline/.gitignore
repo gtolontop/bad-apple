@@ -1,0 +1,10 @@
+.venv/
+cache/
+frames/
+outputs/*.mp4
+outputs/*.mov
+source_images/_official_downloads/
+source_images/_pdf_images/
+official_downloads/
+__pycache__/
+*.pyc

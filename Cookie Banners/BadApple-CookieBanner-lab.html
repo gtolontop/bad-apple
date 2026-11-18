@@ -1,0 +1,249 @@
+<title>Bad Apple — but it's only cookie banners</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --bg:#07080b; --panel:#0f1118; --line:#20232e; --txt:#e7e9ee; --mut:#8a90a2;
+  --acc:#2fc75f; --accDk:#04150a;
+  /* off-cell (dimmed banner) */
+  --offBg:#0b0d13; --offLine:#161923; --offTxt:#3b414f;
+  /* on-cell (lit banner) */
+  --onBg:#f5f6f8; --onTxt:#12151c;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:radial-gradient(120% 120% at 50% -10%,#0d0f15 0%,var(--bg) 60%);
+  color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  display:flex;flex-direction:column;min-height:100vh;overflow:hidden
+}
+
+/* ---------- top bar ---------- */
+header{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:11px 16px;border-bottom:1px solid var(--line);
+  background:rgba(10,11,16,.6);backdrop-filter:blur(6px);z-index:5
+}
+h1{font-size:14.5px;margin:0;font-weight:600;letter-spacing:.2px;white-space:nowrap}
+h1 .em{font-size:16px;margin-right:4px}
+h1 b{color:var(--acc);font-weight:700}
+.sub{font-size:11px;color:var(--mut);margin-left:2px}
+.spacer{flex:1}
+.grp{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{
+  background:var(--panel);border:1px solid var(--line);color:var(--txt);
+  border-radius:9px;padding:7px 11px;font-size:13px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;line-height:1;transition:.12s
+}
+.btn:hover{border-color:#39404f;background:#141722}
+.btn.act{border-color:var(--acc);color:var(--acc)}
+.ctl{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mut);user-select:none}
+.ctl b{color:var(--txt);font-variant-numeric:tabular-nums;min-width:2.4em;text-align:right}
+input[type=range]{accent-color:var(--acc);width:104px;cursor:pointer}
+input[type=checkbox]{accent-color:var(--acc);cursor:pointer}
+label.ck{display:flex;align-items:center;gap:5px;cursor:pointer}
+
+/* ---------- stage ---------- */
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;min-height:0}
+#stage{
+  position:relative;
+  width:min(94vw, calc((100vh - 150px) * var(--ar)));
+  aspect-ratio:var(--ar);
+  background:#000;border-radius:12px;overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 0 1px #1b1e27
+}
+#wall{
+  position:absolute;inset:0;display:grid;gap:2px;padding:2px;background:#000
+}
+
+/* ---------- one cookie banner = one pixel ---------- */
+.bnr{
+  position:relative;display:flex;flex-direction:column;justify-content:center;gap:.28em;
+  padding:.34em .4em;border-radius:.34em;overflow:hidden;
+  background:var(--offBg);border:1px solid var(--offLine);color:var(--offTxt);
+  font-size:var(--fs);line-height:1;
+  transition:background .05s linear,color .05s linear,border-color .05s linear,box-shadow .05s linear
+}
+.bnr .top{display:flex;align-items:center;gap:.32em}
+.bnr .ck{font-size:1.15em;filter:grayscale(1) brightness(.6)}
+.bnr .msg{font-size:.62em;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85}
+.bnr .btns{display:flex;gap:.26em}
+.bnr .b{
+  flex:1;text-align:center;font-size:.58em;font-weight:700;letter-spacing:.2px;
+  padding:.32em 0;border-radius:.32em;border:1px solid currentColor;opacity:.5;
+  white-space:nowrap;overflow:hidden
+}
+
+/* lit = part of the silhouette */
+.bnr.on{
+  background:var(--onBg);border-color:#fff;color:var(--onTxt);
+  box-shadow:0 0 .5em rgba(47,199,95,.22)
+}
+.bnr.on .ck{filter:none}
+.bnr.on .msg{opacity:1;color:#242833}
+.bnr.on .b{opacity:1}
+.bnr.on .b.acc{background:var(--acc);color:var(--accDk);border-color:var(--acc)}
+.bnr.on .b.rej{background:#fff;color:#6b7280;border-color:#ccd0d8}
+
+/* super-dense: hide inner text, keep the two buttons as the "pixel" */
+#wall.dense .bnr .top{display:none}
+#wall.dense .bnr{justify-content:center;padding:.2em}
+#wall.ultra .bnr .b{font-size:0;padding:.42em 0}
+#wall.ultra .bnr .btns{gap:.18em}
+
+/* ---------- source video (used only for sampling) ---------- */
+#vid{position:absolute;width:2px;height:2px;opacity:0;left:0;top:0;pointer-events:none}
+#vid.show{
+  width:min(30%,190px);height:auto;opacity:1;right:10px;bottom:10px;left:auto;top:auto;
+  border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.7);z-index:4;border:1px solid #2a2e3a
+}
+
+/* ---------- start / unmute veil ---------- */
+#veil{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(4,5,8,.62);backdrop-filter:blur(3px);cursor:pointer;z-index:6;
+  text-align:center;transition:opacity .35s
+}
+#veil.gone{opacity:0;pointer-events:none}
+#veil .card{
+  background:#fff;color:#12151c;border-radius:14px;padding:22px 26px;max-width:340px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);font-size:14px;line-height:1.5
+}
+#veil .card h3{margin:0 0 8px;font-size:16px;display:flex;align-items:center;gap:8px}
+#veil .card p{margin:0 0 16px;color:#4a5060}
+#veil .card .row{display:flex;gap:10px}
+#veil .card button{
+  flex:1;border:0;border-radius:9px;padding:11px 0;font-size:14px;font-weight:700;cursor:pointer
+}
+#veil .accept{background:var(--acc);color:#04150a}
+#veil .reject{background:#eef0f3;color:#5b6270}
+
+/* ---------- fullscreen ---------- */
+#stage:fullscreen{width:auto;height:100vh;aspect-ratio:var(--ar);border-radius:0}
+#stage:fullscreen #wall{gap:2px}
+footer{padding:8px 16px;border-top:1px solid var(--line);color:var(--mut);font-size:11px;text-align:center}
+</style>
+
+<header>
+  <h1><span class="em">🍪</span>Bad Apple — <b>but it's only cookie banners</b></h1>
+  <span class="sub" id="res">14×11 · 154 popups</span>
+  <span class="spacer"></span>
+  <div class="grp">
+    <button class="btn" id="playBtn" title="Play / Pause">⏸ Pause</button>
+    <button class="btn" id="restartBtn" title="Restart">↺</button>
+    <button class="btn" id="soundBtn" title="Sound">🔇 Muet</button>
+    <button class="btn" id="fsBtn" title="Fullscreen">⛶</button>
+  </div>
+</header>
+
+<main>
+  <div id="stage">
+    <video id="vid" src="badapple.mp4" muted loop playsinline autoplay preload="auto"></video>
+    <div id="wall"></div>
+    <div id="veil">
+      <div class="card">
+        <h3>🍪 We value your privacy</h3>
+        <p>Ce site utilise des cookies… enfin, <b>108+ cookies</b>, pour afficher Bad Apple. Autoriser le son&nbsp;?</p>
+        <div class="row">
+          <button class="accept" id="acceptBtn">Accept &amp; play sound</button>
+          <button class="reject" id="rejectBtn">Reject (muet)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Chaque « pixel » est une vraie popup RGPD. Résolution&nbsp;
+  <input type="range" id="resSlider" min="8" max="40" value="14">
+  · seuil <input type="range" id="thSlider" min="20" max="230" value="128">
+  · <label class="ck"><input type="checkbox" id="invChk"> inverser</label>
+  · <label class="ck"><input type="checkbox" id="srcChk"> voir la source</label>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  const $=s=>document.querySelector(s);
+  const vid=$('#vid'), wall=$('#wall'), stage=$('#stage'), veil=$('#veil');
+  let cols=14, rows=11, threshold=128, invert=false;
+
+  const BANNER =
+    '<div class="top"><span class="ck">🍪</span><span class="msg">We value your privacy</span></div>'+
+    '<div class="btns"><span class="b acc">Accept</span><span class="b rej">Reject</span></div>';
+
+  function setRes(c){
+    cols=c; rows=Math.max(3,Math.round(c*3/4));
+    $('#res').textContent=cols+'×'+rows+' · '+(cols*rows)+' popups';
+    build(); layout();
+  }
+  function build(){
+    stage.style.setProperty('--ar',(cols/rows).toFixed(4));
+    wall.style.gridTemplateColumns='repeat('+cols+',1fr)';
+    wall.style.gridTemplateRows='repeat('+rows+',1fr)';
+    wall.classList.toggle('dense', cols>18);
+    wall.classList.toggle('ultra', cols>28);
+    const frag=document.createDocumentFragment();
+    wall.innerHTML='';
+    for(let i=0;i<cols*rows;i++){ const d=document.createElement('div'); d.className='bnr'; d.innerHTML=BANNER; frag.appendChild(d); }
+    wall.appendChild(frag);
+  }
+  function layout(){
+    const cw=wall.clientWidth/cols;
+    wall.style.setProperty('--fs', Math.max(5, cw*0.5).toFixed(1)+'px');
+    wall.style.gap=(cols<=12?3:cols<=22?2:1)+'px';
+  }
+  window.addEventListener('resize', layout);
+  document.addEventListener('fullscreenchange', layout);
+
+  /* ---------- sampling : video -> luminance grid -> toggle .on ---------- */
+  const cvs=document.createElement('canvas');
+  const ctx=cvs.getContext('2d',{willReadFrequently:true});
+  function sample(){
+    if(vid.readyState<2) return;
+    const vw=vid.videoWidth, vh=vid.videoHeight; if(!vw||!vh) return;
+    if(cvs.width!==cols||cvs.height!==rows){ cvs.width=cols; cvs.height=rows; }
+    // object-fit: cover — échantillonne exactement la zone visible
+    const sAsp=cols/rows, vAsp=vw/vh; let sx,sy,sw,sh;
+    if(vAsp>sAsp){ sh=vh; sw=vh*sAsp; sx=(vw-sw)/2; sy=0; }
+    else { sw=vw; sh=vw/sAsp; sx=0; sy=(vh-sh)/2; }
+    try{ ctx.drawImage(vid, sx,sy,sw,sh, 0,0,cols,rows); }catch(_){ return; }
+    let d; try{ d=ctx.getImageData(0,0,cols,rows).data; }catch(_){ return; }
+    const n=cols*rows, lums=new Float32Array(n); let sum=0;
+    for(let i=0;i<n;i++){ const l=0.299*d[i*4]+0.587*d[i*4+1]+0.114*d[i*4+2]; lums[i]=l; sum+=l; }
+    let darkBg=(sum/n)<128; if(invert) darkBg=!darkBg;   // auto-polarité par frame
+    const k=wall.children;
+    for(let i=0;i<n;i++){
+      const on = darkBg ? (lums[i] > 255-threshold) : (lums[i] < threshold);
+      const el=k[i]; if(el) el.classList.toggle('on', on);
+    }
+  }
+  (function tick(){ sample(); requestAnimationFrame(tick); })();
+
+  /* ---------- transport ---------- */
+  const playBtn=$('#playBtn'), soundBtn=$('#soundBtn');
+  function syncPlay(){ playBtn.textContent = vid.paused ? '▶ Play' : '⏸ Pause'; }
+  playBtn.onclick=()=>{ vid.paused?vid.play():vid.pause(); syncPlay(); };
+  vid.addEventListener('play', syncPlay); vid.addEventListener('pause', syncPlay);
+  $('#restartBtn').onclick=()=>{ vid.currentTime=0; vid.play(); };
+  function unmute(){ vid.muted=false; vid.play().catch(()=>{}); soundBtn.textContent='🔊 Son'; soundBtn.classList.add('act'); veil.classList.add('gone'); }
+  function mute(){ vid.muted=true; soundBtn.textContent='🔇 Muet'; soundBtn.classList.remove('act'); }
+  soundBtn.onclick=()=>{ vid.muted?unmute():mute(); };
+  $('#acceptBtn').onclick=unmute;
+  $('#rejectBtn').onclick=()=>{ veil.classList.add('gone'); vid.play().catch(()=>{}); };
+
+  $('#fsBtn').onclick=()=>{ if(document.fullscreenElement){ document.exitFullscreen(); } else { stage.requestFullscreen&&stage.requestFullscreen().catch(()=>{}); } };
+
+  /* ---------- settings ---------- */
+  $('#resSlider').oninput=e=>setRes(+e.target.value);
+  $('#thSlider').oninput=e=>{ threshold=+e.target.value; };
+  $('#invChk').onchange=e=>{ invert=e.target.checked; };
+  $('#srcChk').onchange=e=>{ vid.classList.toggle('show', e.target.checked); };
+
+  /* ---------- go ---------- */
+  setRes(14);
+  vid.play().catch(()=>{});
+  syncPlay();
+})();
+</script>

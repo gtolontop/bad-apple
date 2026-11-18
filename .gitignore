@@ -1,0 +1,13 @@
+# media and generated data (rebuilt locally, never published)
+*.mp4
+*.mov
+*.orig
+frames/
+frames_*/
+outputs/
+cache/
+source_images/
+official_downloads/
+.venv/
+__pycache__/
+*.pyc

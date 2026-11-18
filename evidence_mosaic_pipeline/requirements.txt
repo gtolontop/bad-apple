@@ -1,0 +1,7 @@
+numpy>=1.26
+opencv-python>=4.9
+Pillow>=10.0
+requests>=2.31
+beautifulsoup4>=4.12
+pytesseract>=0.3.10
+PyMuPDF>=1.24
